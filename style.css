@@ -263,11 +263,10 @@ canvas,
   display: block;
   pointer-events: none;
   background-color: #000000;
-  image-rendering: -webkit-optimize-contrast;
-  image-rendering: high-quality;
   transform: translateZ(0);
-  will-change: transform;
+  will-change: transform, opacity;
   backface-visibility: hidden;
+  filter: contrast(1.16) saturate(1.28);
 }
 
 /* Cinematic Dark Gradient Seams */

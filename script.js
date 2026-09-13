@@ -93,8 +93,8 @@
   const images5 = new Array(FRAME_COUNT_5);
   const loaded5 = new Array(FRAME_COUNT_5).fill(false);
 
-  // Smooth LERP factor for fluid, cinematic scroll inertia (slower, deliberate frame pacing)
-  const SCROLL_LERP = 0.12;
+  // Ultra-responsive LERP factor for instant, zero-lag frame tracking
+  const SCROLL_LERP = 0.35;
 
   // Targets and LERP variables for canvas sequences
   let targetProgress1 = 0;
@@ -156,8 +156,6 @@
 
     const img = getLoadedImage(imgs, lds, count, index);
     if (img && img.complete && img.naturalWidth > 0) {
-      ctx1.imageSmoothingEnabled = true;
-      ctx1.imageSmoothingQuality = 'high';
       ctx1.drawImage(img, 0, 0, canvas1.width, canvas1.height);
       lastFrame1 = index;
     }
@@ -182,8 +180,6 @@
 
     const img = getLoadedImage(imgs, lds, count, index);
     if (img && img.complete && img.naturalWidth > 0) {
-      ctx2.imageSmoothingEnabled = true;
-      ctx2.imageSmoothingQuality = 'high';
       ctx2.drawImage(img, 0, 0, canvas2.width, canvas2.height);
       lastFrame2 = index;
     }
@@ -203,8 +199,6 @@
     if (!ctx5 || !canvas5) return;
     const img = getLoadedImage(images5, loaded5, FRAME_COUNT_5, index);
     if (img && img.complete && img.naturalWidth > 0) {
-      ctx5.imageSmoothingEnabled = true;
-      ctx5.imageSmoothingQuality = 'high';
       ctx5.drawImage(img, 0, 0, canvas5.width, canvas5.height);
       lastFrame5 = index;
     }
@@ -220,8 +214,8 @@
   }
 
   function resizeCanvases() {
-    // 4K Ultra-HD Device Pixel Ratio scaling (up to 3x native resolution)
-    const dpr = Math.min(3, Math.max(window.devicePixelRatio || 1, 2));
+    // Hardware-accelerated pixel ratio capped at 1.5 to eliminate GPU fillrate bottlenecks
+    const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
     const width = window.innerWidth;
     const height = window.innerHeight;
 
@@ -230,8 +224,6 @@
       canvas1.height = Math.round(height * dpr);
       canvas1.style.width = width + 'px';
       canvas1.style.height = height + 'px';
-      ctx1.imageSmoothingEnabled = true;
-      ctx1.imageSmoothingQuality = 'high';
       drawFrame1(lastFrame1 >= 0 ? lastFrame1 : 0);
     }
     if (canvas2 && ctx2) {
@@ -239,8 +231,6 @@
       canvas2.height = Math.round(height * dpr);
       canvas2.style.width = width + 'px';
       canvas2.style.height = height + 'px';
-      ctx2.imageSmoothingEnabled = true;
-      ctx2.imageSmoothingQuality = 'high';
       drawFrame2(lastFrame2 >= 0 ? lastFrame2 : 0);
     }
     if (canvas5 && ctx5) {
@@ -248,8 +238,6 @@
       canvas5.height = Math.round(height * dpr);
       canvas5.style.width = width + 'px';
       canvas5.style.height = height + 'px';
-      ctx5.imageSmoothingEnabled = true;
-      ctx5.imageSmoothingQuality = 'high';
       drawFrame5(lastFrame5 >= 0 ? lastFrame5 : 0);
     }
     prevProgress1 = -1;
@@ -346,6 +334,41 @@
 
   const batchQueue = createBatchQueue(6);
 
+  function scheduleIntermediateFrames(targetImages, targetLoaded, frameCount, urlFn, stride) {
+    const intermediates = [];
+    for (let i = 1; i < frameCount; i++) {
+      if (i % stride === 0 || i === frameCount - 1 || targetLoaded[i]) continue;
+      intermediates.push(i);
+    }
+
+    let idx = 0;
+    function loadNextBatch() {
+      if (idx >= intermediates.length) return;
+      const end = Math.min(idx + 4, intermediates.length);
+      for (let k = idx; k < end; k++) {
+        const frameIdx = intermediates[k];
+        batchQueue.push(urlFn(frameIdx + 1), (img) => {
+          targetImages[frameIdx] = img;
+          targetLoaded[frameIdx] = true;
+        }, 'low');
+      }
+      idx = end;
+      if (idx < intermediates.length) {
+        if ('requestIdleCallback' in window) {
+          requestIdleCallback(loadNextBatch, { timeout: 150 });
+        } else {
+          setTimeout(loadNextBatch, 60);
+        }
+      }
+    }
+
+    if ('requestIdleCallback' in window) {
+      requestIdleCallback(loadNextBatch, { timeout: 300 });
+    } else {
+      setTimeout(loadNextBatch, 100);
+    }
+  }
+
   function loadSequenceStaged(targetImages, targetLoaded, frameCount, urlFn, onFirstFrameReady, isHero = false) {
     // Stage 0: Instant Frame 1 with high priority
     if (!targetLoaded[0]) {
@@ -366,8 +389,8 @@
       else { img0.onload = onReady0; img0.onerror = onReady0; }
     }
 
-    // Stage 1: Keyframe stride (stride = 3) for immediate responsive scrubbing
-    const stride = 3;
+    // Stage 1: Keyframe stride (stride = 4) - only 45 frames for instant, responsive scrubbing
+    const stride = 4;
     const keyframes = [];
     for (let i = stride; i < frameCount; i += stride) {
       keyframes.push(i);
@@ -381,27 +404,25 @@
       updateLoadingBar();
     }
 
+    let keyframesLoaded = 0;
     keyframes.forEach((idx) => {
-      if (targetLoaded[idx]) return;
+      if (targetLoaded[idx]) {
+        keyframesLoaded++;
+        return;
+      }
       batchQueue.push(urlFn(idx + 1), (img) => {
         targetImages[idx] = img;
         targetLoaded[idx] = true;
+        keyframesLoaded++;
         if (isHero) {
           loadedKeyframesCount++;
           updateLoadingBar();
         }
+        if (keyframesLoaded >= keyframes.length) {
+          scheduleIntermediateFrames(targetImages, targetLoaded, frameCount, urlFn, stride);
+        }
       }, 'high');
     });
-
-    // Stage 2: Background pass for full 120fps intermediate frames
-    for (let i = 1; i < frameCount; i++) {
-      if (i % stride === 0 || i === frameCount - 1) continue;
-      const idx = i;
-      batchQueue.push(urlFn(idx + 1), (img) => {
-        targetImages[idx] = img;
-        targetLoaded[idx] = true;
-      }, 'low');
-    }
   }
 
   let section1Loaded = false;
@@ -639,39 +660,17 @@
     }
   }
 
-  // Ultra-Smooth Inertia Momentum Scroll Engine
-  let smoothScrollY = window.scrollY;
-  let targetScrollY = window.scrollY;
-  let isSmoothScrolling = false;
-
-  function getMaxScroll() {
-    return Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
-  }
-
   // Ultra-smooth animation loop with 1:1 razor-sharp frame rendering
   let prevProgress1 = -1;
   let prevProgress2 = -1;
 
   function loop() {
-    // 0. Update Ultra-Smooth Inertia Momentum
-    if (isSmoothScrolling) {
-      const scrollDiff = targetScrollY - smoothScrollY;
-      if (Math.abs(scrollDiff) > 0.3) {
-        smoothScrollY += scrollDiff * 0.11; // gentler, softer exponential dampening
-        window.scrollTo(0, smoothScrollY);
-      } else {
-        smoothScrollY = targetScrollY;
-        window.scrollTo(0, smoothScrollY);
-        isSmoothScrolling = false;
-      }
-    }
-
     const isMob = isMobileDevice();
 
-    // 1. LERP Animation 1 (silky smooth dampening)
+    // 1. LERP Animation 1 (ultra-fast, responsive tracking)
     if (canvas1) {
       const diff1 = targetProgress1 - currentProgress1;
-      if (Math.abs(diff1) > 0.00005) {
+      if (Math.abs(diff1) > 0.0001) {
         currentProgress1 += diff1 * SCROLL_LERP;
       } else {
         currentProgress1 = targetProgress1;
@@ -684,8 +683,8 @@
 
     // 2. LERP Slow Transition (Page 2 gliding up)
     const diffY = targetTranslateY2 - currentTranslateY2;
-    if (Math.abs(diffY) > 0.005) {
-      currentTranslateY2 += diffY * 0.12;
+    if (Math.abs(diffY) > 0.01) {
+      currentTranslateY2 += diffY * 0.22;
     } else {
       currentTranslateY2 = targetTranslateY2;
     }
@@ -694,19 +693,17 @@
       page2Wrap.style.transform = `translateY(${currentTranslateY2.toFixed(2)}%)`;
     }
 
-    // Deep cinematic vignette on Canvas 1
+    // Smooth vignette opacity transition for Canvas 1
     if (canvas1) {
       const enterFraction = Math.max(0, Math.min(1, (100 - currentTranslateY2) / 100));
-      const brightness = Math.max(0.65, 1 - 0.35 * enterFraction);
       const opacity = Math.max(0.85, 1 - 0.15 * enterFraction);
-      canvas1.style.filter = `contrast(1.20) saturate(1.35) brightness(${(1.02 * brightness).toFixed(3)})`;
       canvas1.style.opacity = `${opacity.toFixed(3)}`;
     }
 
     // 3. LERP Animation 2 (desktop and mobile)
     if (canvas2) {
       const diff2 = targetProgress2 - currentProgress2;
-      if (Math.abs(diff2) > 0.00005) {
+      if (Math.abs(diff2) > 0.0001) {
         currentProgress2 += diff2 * SCROLL_LERP;
       } else {
         currentProgress2 = targetProgress2;
@@ -715,15 +712,12 @@
         drawBlended2(Math.max(0, Math.min(1, currentProgress2)));
         prevProgress2 = currentProgress2;
       }
-
-      // 4K Ultra-HD HDR Color Grading
-      canvas2.style.filter = 'contrast(1.22) saturate(1.38) brightness(1.03)';
     }
 
     // 4. LERP Page 3 Transition (Page 3 gliding up)
     const diffY3 = targetTranslateY3 - currentTranslateY3;
-    if (Math.abs(diffY3) > 0.005) {
-      currentTranslateY3 += diffY3 * 0.12;
+    if (Math.abs(diffY3) > 0.01) {
+      currentTranslateY3 += diffY3 * 0.22;
     } else {
       currentTranslateY3 = targetTranslateY3;
     }
@@ -734,7 +728,7 @@
 
     // 5. LERP Animation 3 Progress
     const diff3 = targetProgress3 - currentProgress3;
-    if (Math.abs(diff3) > 0.00005) {
+    if (Math.abs(diff3) > 0.0001) {
       currentProgress3 += diff3 * SCROLL_LERP;
     } else {
       currentProgress3 = targetProgress3;
@@ -781,9 +775,7 @@
     // Fade Canvas 2 as Page 3 enters
     if (canvas2) {
       const enterFraction3 = Math.max(0, Math.min(1, (100 - currentTranslateY3) / 100));
-      const brightness = Math.max(0.65, 1 - 0.35 * enterFraction3);
       const opacity = Math.max(0.85, 1 - 0.15 * enterFraction3);
-      canvas2.style.filter = `contrast(1.22) saturate(1.38) brightness(${(1.03 * brightness).toFixed(3)})`;
       canvas2.style.opacity = `${opacity.toFixed(3)}`;
     }
 
@@ -810,7 +802,7 @@
     // 9. LERP Animation 5 Progress (READY convergence)
     if (canvas5) {
       const diff5 = targetProgress5 - currentProgress5;
-      if (Math.abs(diff5) > 0.00005) {
+      if (Math.abs(diff5) > 0.0001) {
         currentProgress5 += diff5 * SCROLL_LERP;
       } else {
         currentProgress5 = targetProgress5;
@@ -819,7 +811,6 @@
         drawBlended5(Math.max(0, Math.min(1, currentProgress5)));
         prevProgress5 = currentProgress5;
       }
-      canvas5.style.filter = 'contrast(1.22) saturate(1.42) brightness(1.04) drop-shadow(0 0 28px rgba(255, 20, 117, 0.45))';
     }
 
     // Reveal or hide Instagram CTA based on Page 5 scroll progress
@@ -1029,14 +1020,13 @@
     });
   }
 
-  // Smooth scroll navigation targets
+  // Smooth scroll navigation targets using native hardware-accelerated smooth behavior
   if (navAbout) {
     navAbout.addEventListener('click', (e) => {
       e.preventDefault();
       const vh = window.innerHeight;
-      const isMob = isMobileDevice();
-      targetScrollY = isMob ? 3.8 * vh : 4.6 * vh;
-      isSmoothScrolling = true;
+      const top = isMobileDevice() ? 3.8 * vh : 4.6 * vh;
+      window.scrollTo({ top, behavior: 'smooth' });
       if (navLinks) navLinks.classList.remove('active');
       if (navMobileToggle) navMobileToggle.classList.remove('active');
     });
@@ -1046,9 +1036,8 @@
     navExperience.addEventListener('click', (e) => {
       e.preventDefault();
       const vh = window.innerHeight;
-      const isMob = isMobileDevice();
-      targetScrollY = isMob ? 7.2 * vh : 8.0 * vh;
-      isSmoothScrolling = true;
+      const top = isMobileDevice() ? 7.2 * vh : 8.0 * vh;
+      window.scrollTo({ top, behavior: 'smooth' });
       if (navLinks) navLinks.classList.remove('active');
       if (navMobileToggle) navMobileToggle.classList.remove('active');
     });
@@ -1057,8 +1046,7 @@
   if (navContact) {
     navContact.addEventListener('click', (e) => {
       e.preventDefault();
-      targetScrollY = document.documentElement.scrollHeight - window.innerHeight;
-      isSmoothScrolling = true;
+      window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' });
       if (navLinks) navLinks.classList.remove('active');
       if (navMobileToggle) navMobileToggle.classList.remove('active');
     });
@@ -1080,28 +1068,7 @@
     });
   }
 
-  // Intercept desktop mousewheel ticks and convert into silky floating momentum
-  window.addEventListener('wheel', (e) => {
-    // Allow pinch-zoom (ctrlKey) or modal internal scroll
-    if (e.ctrlKey) return;
-    if (acceptModal && acceptModal.classList.contains('active')) return;
-    if (pricingModal && pricingModal.classList.contains('active')) return;
-
-    const maxScroll = getMaxScroll();
-    if (maxScroll <= 0) return;
-
-    e.preventDefault();
-
-    let delta = e.deltaY;
-    if (e.deltaMode === 1) delta *= 36; // lines to px
-    else if (e.deltaMode === 2) delta *= window.innerHeight; // pages to px
-
-    const scrollSpeed = 0.52; // Slower, luxurious wheel scroll speed
-    targetScrollY = Math.max(0, Math.min(maxScroll, targetScrollY + delta * scrollSpeed));
-    isSmoothScrolling = true;
-  }, { passive: false });
-
-  // Keyboard navigation (ArrowDown, ArrowUp, PageDown, PageUp, Space, Home, End, Escape)
+  // Keyboard navigation
   window.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
       if (pricingModal && pricingModal.classList.contains('active')) {
@@ -1118,39 +1085,16 @@
         return;
       }
     }
-    if (acceptModal && acceptModal.classList.contains('active')) return;
-    if (pricingModal && pricingModal.classList.contains('active')) return;
-
-    const maxScroll = getMaxScroll();
-    let keyDelta = 0;
-    if (e.key === 'ArrowDown') keyDelta = 45;
-    else if (e.key === 'ArrowUp') keyDelta = -45;
-    else if (e.key === 'PageDown' || (e.key === ' ' && !e.shiftKey)) keyDelta = window.innerHeight * 0.65;
-    else if (e.key === 'PageUp' || (e.key === ' ' && e.shiftKey)) keyDelta = -window.innerHeight * 0.65;
-    else if (e.key === 'Home') keyDelta = -targetScrollY;
-    else if (e.key === 'End') keyDelta = maxScroll - targetScrollY;
-
-    if (keyDelta !== 0) {
-      e.preventDefault();
-      targetScrollY = Math.max(0, Math.min(maxScroll, targetScrollY + keyDelta));
-      isSmoothScrolling = true;
-    }
   });
 
-  // Keep in sync if scrolled natively (e.g. scrollbar thumb drag or mobile touch swipe)
+  // Native hardware-accelerated scroll listener
   window.addEventListener('scroll', () => {
-    if (!isSmoothScrolling) {
-      smoothScrollY = window.scrollY;
-      targetScrollY = window.scrollY;
-    }
     updateScroll();
   }, { passive: true });
 
   window.addEventListener('resize', () => {
     initPreloading();
     resizeCanvases();
-    smoothScrollY = window.scrollY;
-    targetScrollY = window.scrollY;
     updateScroll();
   });
 
