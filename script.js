@@ -45,6 +45,32 @@
   const ctx2 = getContext4K(canvas2);
   const ctx5 = getContext4K(canvas5);
 
+  // Initialize Lenis High-Fidelity Physics-Based Smooth Momentum Scroll
+  let lenis = null;
+  if (typeof Lenis !== 'undefined') {
+    lenis = new Lenis({
+      duration: 1.2,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      orientation: 'vertical',
+      gestureOrientation: 'vertical',
+      smoothWheel: true,
+      smoothTouch: false,
+      wheelMultiplier: 0.95,
+      touchMultiplier: 1.0,
+      infinite: false,
+    });
+
+    lenis.on('scroll', (e) => {
+      updateScroll(e.scroll);
+    });
+
+    function lenisRaf(time) {
+      lenis.raf(time);
+      requestAnimationFrame(lenisRaf);
+    }
+    requestAnimationFrame(lenisRaf);
+  }
+
   // Phone / Mobile Device Detection (portrait or viewport <= 768px)
   const isMobileDevice = () => {
     return window.innerWidth <= 768 || (window.innerHeight > window.innerWidth && window.innerWidth <= 1024);
@@ -478,8 +504,8 @@
 
   // Calculate scroll targets with a dedicated 180vh slow transition zone on desktop,
   // or seamless multi-stage scroll trajectory on mobile phones
-  function updateScroll() {
-    const scrollY = window.scrollY;
+  function updateScroll(customScrollY) {
+    const scrollY = typeof customScrollY === 'number' ? customScrollY : (lenis ? lenis.scroll : window.scrollY);
     const vh = window.innerHeight;
     const maxScroll = document.documentElement.scrollHeight - vh;
 
@@ -667,24 +693,21 @@
   function loop() {
     const isMob = isMobileDevice();
 
-    // 1. LERP Animation 1 (ultra-fast, responsive tracking)
+    // 1. LERP Animation 1 (physics-matched fluid tracking)
     if (canvas1) {
       const diff1 = targetProgress1 - currentProgress1;
-      if (Math.abs(diff1) > 0.0001) {
-        currentProgress1 += diff1 * SCROLL_LERP;
+      if (Math.abs(diff1) > 0.00005) {
+        currentProgress1 += diff1 * 0.45;
       } else {
         currentProgress1 = targetProgress1;
       }
-      if (Math.abs(currentProgress1 - prevProgress1) > 0.0001 || lastFrame1 === -1) {
-        drawBlended1(Math.max(0, Math.min(1, currentProgress1)));
-        prevProgress1 = currentProgress1;
-      }
+      drawBlended1(Math.max(0, Math.min(1, currentProgress1)));
     }
 
     // 2. LERP Slow Transition (Page 2 gliding up)
     const diffY = targetTranslateY2 - currentTranslateY2;
     if (Math.abs(diffY) > 0.01) {
-      currentTranslateY2 += diffY * 0.22;
+      currentTranslateY2 += diffY * 0.25;
     } else {
       currentTranslateY2 = targetTranslateY2;
     }
@@ -703,15 +726,12 @@
     // 3. LERP Animation 2 (desktop and mobile)
     if (canvas2) {
       const diff2 = targetProgress2 - currentProgress2;
-      if (Math.abs(diff2) > 0.0001) {
-        currentProgress2 += diff2 * SCROLL_LERP;
+      if (Math.abs(diff2) > 0.00005) {
+        currentProgress2 += diff2 * 0.45;
       } else {
         currentProgress2 = targetProgress2;
       }
-      if (Math.abs(currentProgress2 - prevProgress2) > 0.0001 || lastFrame2 === -1) {
-        drawBlended2(Math.max(0, Math.min(1, currentProgress2)));
-        prevProgress2 = currentProgress2;
-      }
+      drawBlended2(Math.max(0, Math.min(1, currentProgress2)));
     }
 
     // 4. LERP Page 3 Transition (Page 3 gliding up)
@@ -802,15 +822,12 @@
     // 9. LERP Animation 5 Progress (READY convergence)
     if (canvas5) {
       const diff5 = targetProgress5 - currentProgress5;
-      if (Math.abs(diff5) > 0.0001) {
-        currentProgress5 += diff5 * SCROLL_LERP;
+      if (Math.abs(diff5) > 0.00005) {
+        currentProgress5 += diff5 * 0.45;
       } else {
         currentProgress5 = targetProgress5;
       }
-      if (Math.abs(currentProgress5 - prevProgress5) > 0.0001 || lastFrame5 === -1) {
-        drawBlended5(Math.max(0, Math.min(1, currentProgress5)));
-        prevProgress5 = currentProgress5;
-      }
+      drawBlended5(Math.max(0, Math.min(1, currentProgress5)));
     }
 
     // Reveal or hide Instagram CTA based on Page 5 scroll progress
@@ -889,6 +906,7 @@
 
   function handleAccept() {
     playAcceptChime();
+    if (lenis) lenis.stop();
 
     // Update button state
     if (acceptBtn) {
@@ -910,6 +928,7 @@
   }
 
   function handleCloseModal() {
+    if (lenis) lenis.start();
     if (acceptModal) {
       acceptModal.classList.remove('active');
     }
@@ -968,8 +987,8 @@
   if (brandLogoLink) {
     brandLogoLink.addEventListener('click', (e) => {
       e.preventDefault();
-      targetScrollY = 0;
-      isSmoothScrolling = true;
+      if (lenis) lenis.scrollTo(0, { duration: 1.2 });
+      else window.scrollTo({ top: 0, behavior: 'smooth' });
     });
   }
 
@@ -991,10 +1010,12 @@
 
   function openPricingModal() {
     playAcceptChime();
+    if (lenis) lenis.stop();
     if (pricingModal) pricingModal.classList.add('active');
   }
 
   function closePricingModal() {
+    if (lenis) lenis.start();
     if (pricingModal) pricingModal.classList.remove('active');
   }
 
@@ -1026,7 +1047,8 @@
       e.preventDefault();
       const vh = window.innerHeight;
       const top = isMobileDevice() ? 3.8 * vh : 4.6 * vh;
-      window.scrollTo({ top, behavior: 'smooth' });
+      if (lenis) lenis.scrollTo(top, { duration: 1.3 });
+      else window.scrollTo({ top, behavior: 'smooth' });
       if (navLinks) navLinks.classList.remove('active');
       if (navMobileToggle) navMobileToggle.classList.remove('active');
     });
@@ -1037,7 +1059,8 @@
       e.preventDefault();
       const vh = window.innerHeight;
       const top = isMobileDevice() ? 7.2 * vh : 8.0 * vh;
-      window.scrollTo({ top, behavior: 'smooth' });
+      if (lenis) lenis.scrollTo(top, { duration: 1.3 });
+      else window.scrollTo({ top, behavior: 'smooth' });
       if (navLinks) navLinks.classList.remove('active');
       if (navMobileToggle) navMobileToggle.classList.remove('active');
     });
@@ -1046,7 +1069,8 @@
   if (navContact) {
     navContact.addEventListener('click', (e) => {
       e.preventDefault();
-      window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' });
+      if (lenis) lenis.scrollTo(document.documentElement.scrollHeight, { duration: 1.5 });
+      else window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' });
       if (navLinks) navLinks.classList.remove('active');
       if (navMobileToggle) navMobileToggle.classList.remove('active');
     });

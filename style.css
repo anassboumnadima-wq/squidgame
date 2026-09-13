@@ -29,6 +29,20 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Lenis Smooth Inertia Scrolling Engine */
+html.lenis, html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
 /* Squid Game Neon Streaming Progress Bar */
 .loading-progress-bar {
   position: fixed;
