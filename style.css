@@ -29,6 +29,30 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Squid Game Neon Streaming Progress Bar */
+.loading-progress-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 0%;
+  height: 3.5px;
+  background: linear-gradient(90deg, #ff0055, #ff1493, #00f2fe, #ff0055);
+  background-size: 200% 100%;
+  animation: barGradientFlow 2s linear infinite;
+  box-shadow: 0 0 12px rgba(255, 0, 85, 0.9), 0 0 24px rgba(0, 242, 254, 0.7);
+  z-index: 99999;
+  transition: width 0.18s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.5s ease-out;
+  pointer-events: none;
+}
+.loading-progress-bar.done {
+  opacity: 0;
+  pointer-events: none;
+}
+@keyframes barGradientFlow {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
+}
+
 /* ==========================================================================
    SITE HEADER & TOP RIGHT INTERACTIVE NAVIGATION
    ========================================================================== */
