@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Squid Game</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;800;900&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css?v=game_connected_v1">
+</head>
+
+<body>
+  <!-- SITE HEADER (TOP BAR: BRAND LOGO ON LEFT, NAV ON RIGHT) -->
+  <header class="site-header" id="site-header">
+    <a href="#" class="brand-logo-link" id="brand-logo-link" aria-label="NEXUS - Play Beyond">
+      <img src="nexus-logo@2x.png" alt="NEXUS PLAY BEYOND" class="brand-logo-img">
+    </a>
+
+    <!-- Top Right Interactive Navigation -->
+    <nav class="site-nav" id="site-nav" aria-label="Main Navigation">
+      <div class="nav-links" id="nav-links">
+        <a href="#about" class="nav-link" id="nav-about">ABOUT</a>
+        <span class="nav-sep">|</span>
+        <a href="#experience" class="nav-link" id="nav-experience">EXPERIENCE</a>
+        <span class="nav-sep">|</span>
+        <a href="#pricing" class="nav-link" id="nav-pricing">PRICING</a>
+        <span class="nav-sep">|</span>
+        <a href="#contact" class="nav-link" id="nav-contact">CONTACT</a>
+      </div>
+
+      <button class="nav-btn-start" id="nav-btn-start" type="button" aria-label="Start Now">
+        <span class="btn-start-text">START NOW</span>
+        <svg class="btn-start-arrow" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+          <polyline points="12 5 19 12 12 19"></polyline>
+        </svg>
+      </button>
+
+      <!-- Mobile Hamburger Toggle -->
+      <button class="nav-mobile-toggle" id="nav-mobile-toggle" type="button" aria-label="Toggle Navigation Menu">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </nav>
+  </header>
+
+  <!-- PAGE 1 -->
+  <section class="page" id="page-1">
+    <div class="sticky-wrap">
+      <canvas id="canvas-1"></canvas>
+      <div class="dark-seam dark-seam-bottom"></div>
+    </div>
+  </section>
+
+  <!-- PAGE 2 (PAGE BELOW PAGE) -->
+  <section class="page" id="page-2">
+    <div class="sticky-wrap">
+      <canvas id="canvas-2"></canvas>
+      <!-- Interactive Card Overlay -->
+      <div class="card-overlay" id="card-overlay">
+        <div class="card-title-wrap">
+          <img src="the-card-logo.png" alt="THE CARD" class="card-logo-img">
+        </div>
+        <div class="card-subtitle">Begin the game.</div>
+        <div class="card-prompt">
+          <span class="prompt-white">Accept it</span>
+          <span class="prompt-blank" id="prompt-blank">_______</span>
+          <span class="prompt-pink">or walk away</span>
+        </div>
+        <button id="accept-btn" class="card-accept-btn" type="button" aria-label="Accept the game">
+          <span class="btn-text">Accept</span>
+        </button>
+      </div>
+
+      <!-- Squid Game Acceptance Modal -->
+      <div class="accept-modal" id="accept-modal">
+        <div class="modal-backdrop" id="modal-backdrop"></div>
+        <div class="modal-card">
+          <div class="modal-shapes">○ △ □</div>
+          <div class="modal-badge">INVITATION ACCEPTED</div>
+          <h2 class="modal-player-num">PLAYER 456</h2>
+          <p class="modal-desc">You have officially entered the Squid Game.<br>Prepare for Round 1.</p>
+          <div class="modal-actions">
+            <button id="close-modal-btn" class="modal-btn-confirm" type="button">ENTER ARENA ▶</button>
+            <button id="reset-game-btn" class="modal-btn-cancel" type="button">Cancel Invitation</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Squid Game Pricing & Prize Pool Modal -->
+      <div class="accept-modal pricing-modal" id="pricing-modal">
+        <div class="modal-backdrop" id="pricing-backdrop"></div>
+        <div class="modal-card">
+          <div class="modal-shapes">○ △ □</div>
+          <div class="modal-badge">STAKES & PRIZE POOL</div>
+          <h2 class="modal-player-num prize-glow">₩ 45.6 BILLION</h2>
+          <p class="modal-desc">456 Contestants. 6 Games.<br>One Sole Survivor takes all.<br><span class="prize-subtext">Entry Cost: Zero. Ultimate Cost: Everything.</span></p>
+          <div class="modal-actions">
+            <button id="pricing-join-btn" class="modal-btn-confirm" type="button">Enter The Game</button>
+            <button id="close-pricing-btn" class="modal-btn-cancel" type="button">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PAGE 3 (ANIMATION 3: RULES OF SURVIVAL) -->
+  <section class="page" id="page-3">
+    <div class="sticky-wrap rules-sticky-wrap" id="page-3-wrap">
+      
+      <!-- Floating Rotating Wireframe Triangles -->
+      <svg class="wireframe-triangle triangle-1" id="triangle-1" viewBox="0 0 100 100">
+        <polygon points="50,10 90,90 10,90" />
+      </svg>
+      <svg class="wireframe-triangle triangle-2" id="triangle-2" viewBox="0 0 100 100">
+        <polygon points="50,10 90,90 10,90" />
+      </svg>
+
+      <!-- Main Layout Grid -->
+      <div class="rules-container">
+        
+        <!-- Left Column: Front Man Geometric Mask -->
+        <div class="rules-mask-col">
+          <div class="rules-mask-frame">
+            <img src="frontman_mask.jpg" alt="Front Man" class="rules-mask-img">
+            <div class="mask-gradient-overlay"></div>
+            <div class="mask-symbols">○ △ □</div>
+          </div>
+        </div>
+
+        <!-- Right Main Stage -->
+        <div class="rules-content-stage">
+          
+          <!-- Top Banner: Converging "RULES" + "OF SURVIVAL" -->
+          <div class="rules-header">
+            <div class="rules-word" id="rules-word" aria-label="RULES">
+              <div class="rule-letter" id="rule-letter-0">
+                <img src="rule_R@2x.png" alt="R" class="rule-glyph-img">
+              </div>
+              <div class="rule-letter" id="rule-letter-1">
+                <img src="rule_U@2x.png" alt="U" class="rule-glyph-img">
+              </div>
+              <div class="rule-letter" id="rule-letter-2">
+                <img src="rule_L@2x.png" alt="L" class="rule-glyph-img">
+              </div>
+              <div class="rule-letter" id="rule-letter-3">
+                <img src="rule_E@2x.png" alt="E" class="rule-glyph-img">
+              </div>
+              <div class="rule-letter" id="rule-letter-4">
+                <img src="rule_S@2x.png" alt="S" class="rule-glyph-img">
+              </div>
+            </div>
+            <div class="rules-subtext" id="rules-subtext">
+              <img src="subtext_survival@2x.png" alt="OF SURVIVAL" class="rules-subtext-img">
+            </div>
+          </div>
+
+          <!-- 4 Rule Columns Grid -->
+          <div class="rules-cards-grid">
+            
+            <!-- Column 1 -->
+            <div class="rule-card" id="rule-card-1">
+              <div class="rule-card-inner rule-card-inline">
+                <div class="rule-num">1</div>
+                <div class="rule-text-group">
+                  <h3 class="rule-title">6 games.</h3>
+                  <p class="rule-desc">Each harder. Each deadlier</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Column 2 -->
+            <div class="rule-card" id="rule-card-2">
+              <div class="rule-card-inner">
+                <div class="rule-num">2</div>
+                <h3 class="rule-title">No second chances</h3>
+                <p class="rule-desc">One move. One shot.</p>
+              </div>
+            </div>
+
+            <!-- Column 3 -->
+            <div class="rule-card" id="rule-card-3">
+              <div class="rule-card-inner">
+                <div class="rule-num">3</div>
+                <h3 class="rule-title">Trust no one</h3>
+                <p class="rule-desc">Allies can betray you</p>
+              </div>
+            </div>
+
+            <!-- Column 4 -->
+            <div class="rule-card" id="rule-card-4">
+              <div class="rule-card-inner">
+                <div class="rule-num">4</div>
+                <h3 class="rule-title">Time is running</h3>
+                <p class="rule-desc">Decide fast - or die.</p>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- PAGE 4 (INSIDE THE GAME) -->
+  <section class="page" id="page-4">
+    <div class="sticky-wrap inside-sticky-wrap" id="page-4-wrap">
+      <div class="inside-full-frame">
+        <img src="inside_the_game@2x.jpg" alt="INSIDE THE GAME" class="inside-full-img" id="inside-full-img">
+      </div>
+    </div>
+  </section>
+
+  <!-- PAGE 5 (ANIMATION 5: READY) -->
+  <section class="page" id="page-5">
+    <div class="sticky-wrap" id="page-5-wrap">
+      <canvas id="canvas-5"></canvas>
+
+      <!-- Interactive Instagram Link under READY on the left -->
+      <a href="https://www.instagram.com/anassboumnadi200/" 
+         target="_blank" 
+         rel="noopener noreferrer" 
+         class="instagram-cta" 
+         id="instagram-cta"
+         aria-label="Visit Instagram @anassboumnadi200">
+        <div class="insta-icon-box">
+          <svg class="insta-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+            <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+            <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+          </svg>
+        </div>
+        <div class="insta-text-group">
+          <span class="insta-handle">@anassboumnadi200</span>
+          <span class="insta-sub">FOLLOW THE GAME</span>
+        </div>
+        <div class="insta-arrow">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="7" y1="17" x2="17" y2="7"></line>
+            <polyline points="7 7 17 7 17 17"></polyline>
+          </svg>
+        </div>
+      </a>
+    </div>
+  </section>
+
+  <!-- GAME LAUNCH CINEMATIC OVERLAY -->
+  <div class="game-launch-overlay" id="game-launch-overlay">
+    <div class="launch-card">
+      <div class="launch-shapes">○ △ □</div>
+      <div class="launch-badge">CONNECTING TO SURVIVAL ARENA</div>
+      <h2 class="launch-title">PLAYER 456</h2>
+      <div class="launch-loader">
+        <div class="launch-loader-bar"></div>
+      </div>
+      <p class="launch-status">INITIALIZING THE LAST GAME...</p>
+    </div>
+  </div>
+
+  <script src="script.js?v=game_connected_v1"></script>
+</body>
+
+</html>

@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎮</text></svg>" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="description" content="THE LAST GAME — A premium cinematic 3D survival competition. Only one player leaves." />
+    <meta name="theme-color" content="#0a0a0a" />
+    <title>THE LAST GAME</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <style>
+      /* Critical CSS — prevents flash of unstyled content */
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body, #root {
+        width: 100%; height: 100%;
+        overflow: hidden;
+        background: #0a0a0a;
+        color: #f0f0f0;
+        font-family: 'Inter', sans-serif;
+      }
+
+      /* Floating Back Link */
+      .exit-to-squid-web {
+        position: fixed;
+        top: 18px;
+        left: 18px;
+        z-index: 99999;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 16px;
+        background: rgba(10, 10, 15, 0.75);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 9999px;
+        color: #e0e0e0;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        text-decoration: none;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+        transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        user-select: none;
+      }
+      .exit-to-squid-web:hover {
+        background: rgba(255, 45, 120, 0.15);
+        border-color: rgba(255, 45, 120, 0.6);
+        color: #ffffff;
+        box-shadow: 0 0 25px rgba(255, 45, 120, 0.4);
+        transform: translateY(-1px);
+      }
+      .exit-to-squid-web .exit-icon {
+        font-size: 9px;
+        color: #ff2d78;
+        transition: transform 0.2s ease;
+      }
+      .exit-to-squid-web:hover .exit-icon {
+        transform: translateX(-2px);
+      }
+    </style>
+    <script type="module" crossorigin src="./assets/index-rYd8onmA.js"></script>
+    <link rel="modulepreload" crossorigin href="./assets/three-BU2ZU25z.js">
+    <link rel="modulepreload" crossorigin href="./assets/r3f-D_RBxWkm.js">
+    <link rel="stylesheet" crossorigin href="./assets/index-CvC_BtB1.css">
+  </head>
+  <body>
+    <div id="root"></div>
+    <a href="../" class="exit-to-squid-web" id="exit-to-squid-web" title="Return to Squid Game Website">
+      <span class="exit-icon">◀</span>
+      <span class="exit-text">SQUID GAME WEB</span>
+    </a>
+  </body>
+</html>

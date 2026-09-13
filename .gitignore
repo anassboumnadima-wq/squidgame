@@ -1,0 +1,10 @@
+# Git ignore for Squid Game Web
+frames1_backup/
+frames2_backup/
+__pycache__/
+*.pyc
+*.log
+.DS_Store
+Thumbs.db
+mingit/
+frames/
